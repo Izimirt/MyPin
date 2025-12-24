@@ -1,20 +1,17 @@
 #pragma once
 
 #include <Arduino.h>
+#include "Const.h"
 
 class MyPin
 {
     public:
     
-        MyPin(uint16_t pin,
-              bool isOutput,
-              bool isINPUT_PULLUP = false);
+        MyPin(uint16_t pin, pin_mode_t mode);
 
         MyPin();
 
-        void SetPin(uint16_t pin,
-                    bool isOutput,
-                    bool isINPUT_PULLUP = false);
+        void SetPin(uint16_t pin, pin_mode_t mode);
 
         void Change();
 
@@ -43,8 +40,8 @@ class MyPin
     private:
 
         uint16_t pin;
+        pin_mode_t mode;
         bool state;
-        bool isOutput;
 
         bool blinkFlag = false;
         uint32_t startMillisBlink;

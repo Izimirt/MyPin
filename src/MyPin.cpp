@@ -1,29 +1,36 @@
 #include "MyPin.h"
 
-MyPin::MyPin(uint16_t pin, bool isOutput, bool isINPUT_PULLUP)
+MyPin::MyPin(uint16_t pin, pin_mode_t mode)
 {
-    SetPin(pin,isOutput,isINPUT_PULLUP);
+    SetPin(pin,mode);
 }
 
 MyPin::MyPin()
 { 
 }
 
-void MyPin::SetPin(uint16_t pin, bool isOutput, bool isINPUT_PULLUP)
+void MyPin::SetPin(uint16_t pin, pin_mode_t mode)
 {
     this-> pin = pin;
-    this-> isOutput = isOutput;
+    this-> mode = mode;
     state = false;
 
-    if(isOutput) 
+    if(mode == OUT) 
     {
-        pinMode(pin, OUTPUT);
+        pinMode(pin,OUTPUT);
         digitalWrite(pin, false);
     }
-    else if(isINPUT_PULLUP)
-        pinMode(pin, INPUT_PULLUP);
-    else
-        pinMode(pin, INPUT);
+    else if(mode == IN)
+        pinMode(pin,INPUT);
+    else if(mode == IN_PULLUP)
+        pinMode(pin,INPUT_PULLUP);
+
+    #ifdef ESP32
+
+    else if(mode == IN_PULLDOWN)
+        pinMode(pin,INPUT_PULLDOWN);
+
+    #endif
 }
 
 void MyPin::Change()
@@ -59,7 +66,6 @@ void MyPin::StopBlink(bool state)
         blinkFlag = false;
         digitalWrite(pin, state);
     }
-    
 }
 
 void MyPin::BlinkHandler()

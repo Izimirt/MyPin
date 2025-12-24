@@ -1,12 +1,16 @@
 #include "MyPin.h"
 
-MyPin::MyPin(uint16_t pin, pin_mode_t mode)
+MyPin* MyPin::currentPtr = nullptr;
+
+MyPin::MyPin(uint16_t pin, pin_mode_t mode) : MyPin()
 {
     SetPin(pin,mode);
 }
 
 MyPin::MyPin()
-{ 
+{
+    ptrOnOther = currentPtr;
+    currentPtr = this;
 }
 
 void MyPin::SetPin(uint16_t pin, pin_mode_t mode)
@@ -49,14 +53,14 @@ void MyPin::AnalogWrite(uint8_t val)
     analogWrite(pin,val);
 }
 
-void MyPin::StartBlink(uint32_t changeTimeMls)
+void MyPin::StartBlink(uint32_t changeTime_ms)
 {
     if(!blinkFlag)
     {
         blinkFlag = true;
-        startMillisBlink = millis();
+        blinkStartMs = millis();
     }
-    this->changeTimeMls = changeTimeMls;
+    this->changeTime_ms = changeTime_ms;
 }
 
 void MyPin::StopBlink(bool state)
@@ -70,13 +74,24 @@ void MyPin::StopBlink(bool state)
 
 void MyPin::BlinkHandler()
 {
+    uint32_t ms = millis();
+    MyPin* ptr = currentPtr;
+    
+    while(ptr != nullptr)
+    {
+        ptr->InternalBlinkHandler(ms);
+        ptr = ptr->ptrOnOther;
+    }
+}
+
+void MyPin::InternalBlinkHandler(uint32_t currentMs)
+{
     if(blinkFlag)
     {
-        uint32_t mls = millis();
-        if(mls - startMillisBlink >= changeTimeMls)
+        if(currentMs - blinkStartMs >= changeTime_ms)
         {
             Change();
-            startMillisBlink = mls;
+            blinkStartMs = currentMs;
         } 
     }
 }
@@ -103,16 +118,16 @@ uint8_t MyPin::AntiRattleButton(bool signal, uint32_t shortTime, uint32_t longTi
             return 0;
 
         uint32_t mls = millis();
-        if(!previousReaderBtn)
-            startMillisBtn = mls;
+        if(!btnPreviousReader)
+            btnStartMs = mls;
         
-        if(mls - startMillisBtn > shortTime)
+        if(mls - btnStartMs > shortTime)
         {
             buttonState = 1;
 
             if(longTime > shortTime)
             {
-                if(mls - startMillisBtn > longTime)
+                if(mls - btnStartMs > longTime)
                 {
                     buttonState = 2;
                     ready = true;
@@ -125,7 +140,7 @@ uint8_t MyPin::AntiRattleButton(bool signal, uint32_t shortTime, uint32_t longTi
     else
         ready = false;
 
-    previousReaderBtn = reader;
+    btnPreviousReader = reader;
 
     if(ready || (!ready && buttonState))
     {
@@ -147,12 +162,12 @@ uint32_t MyPin::AntiRattleSensor(bool signal)
     if(reader)
     {
         uint32_t mls = millis();
-        if(!previousReaderSns)
-            startMillisSns = mls;
+        if(!snsPreviousReader)
+            snsStartMs = mls;
 
-        result = mls - startMillisSns;
+        result = mls - snsStartMs;
     }
-    previousReaderSns = reader;
+    snsPreviousReader = reader;
     return result;
 }
 

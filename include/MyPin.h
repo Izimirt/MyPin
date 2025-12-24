@@ -19,11 +19,11 @@ class MyPin
 
         void AnalogWrite(uint8_t val);
 
-        void StartBlink(uint32_t changeTimeMls);
+        void StartBlink(uint32_t changeTime_ms);
 
         void StopBlink(bool state);
 
-        void BlinkHandler();
+        static void BlinkHandler();
 
         bool Read();
 
@@ -39,19 +39,24 @@ class MyPin
 
     private:
 
+        void InternalBlinkHandler(uint32_t currentMs);
+
         uint16_t pin;
         pin_mode_t mode;
         bool state;
 
         bool blinkFlag = false;
-        uint32_t startMillisBlink;
-        uint32_t changeTimeMls;
+        uint32_t blinkStartMs;
+        uint32_t changeTime_ms;
 
-        bool previousReaderBtn;
+        bool btnPreviousReader;
         bool ready = false;
         uint8_t buttonState = 0;
-        uint32_t startMillisBtn;
+        uint32_t btnStartMs;
 
-        bool previousReaderSns;
-        uint32_t startMillisSns;
+        bool snsPreviousReader;
+        uint32_t snsStartMs;
+
+        MyPin* ptrOnOther = nullptr;
+        static MyPin* currentPtr;
 };

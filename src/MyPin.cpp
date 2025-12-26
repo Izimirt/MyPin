@@ -17,7 +17,7 @@ void MyPin::SetPin(uint16_t pin, pin_mode_t mode)
 {
     this-> pin = pin;
     this-> mode = mode;
-    state = false;
+    state = needState = false;
 
     if(mode == OUT) 
     {
@@ -37,63 +37,46 @@ void MyPin::SetPin(uint16_t pin, pin_mode_t mode)
     #endif
 }
 
-void MyPin::Change()
+void MyPin::Change(fader_t* set)
 {
-    Change(!state);
+    Change(!needState,set);
 }
 
-void MyPin::Change(bool isOn)
+void MyPin::Change(bool isOn, fader_t* set)
 {
-    digitalWrite(pin, isOn);
-    state = isOn;
+    if((isOn != needState) ||                       //  common turn
+       ((isOn == state) && (state != needState)))   //  turn back when changing haven't done yet
+    {
+        needState = isOn;
+
+        if(set != nullptr)
+        {
+            singlePtr = set;
+            if(!firstFaderBrightSet)
+            {
+                firstFaderBrightSet = true;
+                faderBright = (state ? set->onBright : set->offBright);
+            } 
+        }
+        else if(modePtr != nullptr)
+        {
+            if(!firstFaderBrightSet)
+            {
+                firstFaderBrightSet = true;
+                faderBright = (state ? modePtr->onBright : modePtr->offBright);
+            }
+        }
+        else
+        {
+            analogWrite(pin,(isOn ? 255 : 0));     //  I've done it especially for correct work Fader functions
+            state = isOn;
+        }
+    }
 }
 
 void MyPin::AnalogWrite(uint8_t val)
 {
     analogWrite(pin,val);
-}
-
-void MyPin::StartBlink(uint32_t changeTime_ms)
-{
-    if(!blinkFlag)
-    {
-        blinkFlag = true;
-        blinkStartMs = millis();
-    }
-    this->changeTime_ms = changeTime_ms;
-}
-
-void MyPin::StopBlink(bool state)
-{
-    if(blinkFlag)
-    {
-        blinkFlag = false;
-        digitalWrite(pin, state);
-    }
-}
-
-void MyPin::BlinkHandler()
-{
-    uint32_t ms = millis();
-    MyPin* ptr = currentPtr;
-    
-    while(ptr != nullptr)
-    {
-        ptr->InternalBlinkHandler(ms);
-        ptr = ptr->ptrOnOther;
-    }
-}
-
-void MyPin::InternalBlinkHandler(uint32_t currentMs)
-{
-    if(blinkFlag)
-    {
-        if(currentMs - blinkStartMs >= changeTime_ms)
-        {
-            Change();
-            blinkStartMs = currentMs;
-        } 
-    }
 }
 
 bool MyPin::Read()

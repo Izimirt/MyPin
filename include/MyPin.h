@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include "Const.h"
+#include "Structs.h"
 
 class MyPin
 {
@@ -13,18 +14,12 @@ class MyPin
 
         void SetPin(uint16_t pin, pin_mode_t mode);
 
-        void Change();
+        void Change(fader_t* set = nullptr);
 
-        void Change(bool isOn);
+        void Change(bool isOn, fader_t* set = nullptr);
 
         void AnalogWrite(uint8_t val);
-
-        void StartBlink(uint32_t changeTime_ms);
-
-        void StopBlink(bool state);
-
-        static void BlinkHandler();
-
+        
         bool Read();
 
         int16_t AnalogRead();
@@ -37,26 +32,72 @@ class MyPin
 
         bool GetState();
 
+
+        static void BlinkHandler();
+
+        void StartBlink(uint32_t changeTime_ms);
+
+        void StopBlink(bool state);
+
+        void EnableBlink();
+
+        static void EnableBlinkAll();
+
+
+        static void SetFader(fader_t** ptrSet, uint16_t fadeTime_ms, uint8_t onBright = 255, uint8_t offBright = 0);
+
+        static void FaderHandler();
+
+        void StartFader(fader_t* set);
+
+        static void StartFaderAll(fader_t* set);
+
+        void StopFader();
+
+        void EnableFader();
+
+        static void EnableFaderAll();
+
     private:
 
         void InternalBlinkHandler(uint32_t currentMs);
 
-        uint16_t pin;
+        void InternalFaderHandler(uint32_t currentMs);
+
+        uint16_t pin;               //  Common
         pin_mode_t mode;
         bool state;
+        bool needState;
 
-        bool blinkFlag = false;
-        uint32_t blinkStartMs;
-        uint32_t changeTime_ms;
+        MyPin* ptrOnOther = nullptr;
+        static MyPin* currentPtr;
+        
 
-        bool btnPreviousReader;
+        bool btnPreviousReader;     //  AntiRattleButton
         bool ready = false;
         uint8_t buttonState = 0;
         uint32_t btnStartMs;
 
-        bool snsPreviousReader;
+        bool snsPreviousReader;     //  AntiRattleSensor
         uint32_t snsStartMs;
 
-        MyPin* ptrOnOther = nullptr;
-        static MyPin* currentPtr;
+
+        bool blinkFlag = false;     //  Blink
+        uint32_t blinkStartMs;
+        uint32_t changeTime_ms;
+
+        MyPin* blinkPtrOnOther = nullptr;
+        static MyPin* blinkCurrentPtr;
+        static bool blinkEnableAll;
+
+
+        uint32_t faderPreviousMs;   //  Fader
+        uint8_t faderBright;
+        bool firstFaderBrightSet = false;
+        fader_t* modePtr = nullptr;
+        fader_t* singlePtr = nullptr;
+
+        MyPin* faderPtrOnOther = nullptr;
+        static MyPin* faderCurrentPtr;
+        static bool faderEnableAll;
 };

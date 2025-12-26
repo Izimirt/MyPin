@@ -19,7 +19,7 @@ void MyPin::StopBlink(bool state)
     if(blinkFlag)
     {
         blinkFlag = false;
-        digitalWrite(pin, state);
+        Change(state);
     }
 }
 

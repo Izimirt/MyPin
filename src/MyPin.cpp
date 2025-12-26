@@ -20,10 +20,7 @@ void MyPin::SetPin(uint16_t pin, pin_mode_t mode)
     state = needState = false;
 
     if(mode == OUT) 
-    {
-        pinMode(pin,OUTPUT);
-        digitalWrite(pin, false);
-    }
+        Change(false);
     else if(mode == IN)
         pinMode(pin,INPUT);
     else if(mode == IN_PULLUP)

@@ -122,7 +122,7 @@ uint8_t MyPin::AntiRattleButton(bool signal, uint32_t shortTime, uint32_t longTi
 
     btnPreviousReader = reader;
 
-    if(ready || (!ready && buttonState))
+    if(ready || (!reader && buttonState))
     {
         uint8_t bS = buttonState;
         buttonState = 0;

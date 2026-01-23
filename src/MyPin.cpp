@@ -19,7 +19,7 @@ void MyPin::SetPin(uint16_t pin, pin_mode_t mode)
     this-> mode = mode;
     state = needState = false;
 
-    if(mode == OUT) 
+    if(mode == OUT)
         Change(false);
     else if(mode == IN)
         pinMode(pin,INPUT);
@@ -41,32 +41,35 @@ void MyPin::Change(fader_t* set)
 
 void MyPin::Change(bool isOn, fader_t* set)
 {
-    if((isOn != needState) ||                       //  common turn
-       ((isOn == state) && (state != needState)))   //  turn back when changing haven't done yet
+    if(mode == OUT)
     {
-        needState = isOn;
+        if((isOn != needState) ||                    //  common turn
+        ((isOn == state) && (state != needState)))   //  turn back when changing haven't done yet
+        {
+            needState = isOn;
 
-        if(set != nullptr)
-        {
-            singlePtr = set;
-            if(!firstFaderBrightSet)
+            if(set != nullptr)
             {
-                firstFaderBrightSet = true;
-                faderBright = (state ? set->onBright : set->offBright);
-            } 
-        }
-        else if(modePtr != nullptr)
-        {
-            if(!firstFaderBrightSet)
-            {
-                firstFaderBrightSet = true;
-                faderBright = (state ? modePtr->onBright : modePtr->offBright);
+                singlePtr = set;
+                if(!firstFaderBrightSet)
+                {
+                    firstFaderBrightSet = true;
+                    faderBright = (state ? set->onBright : set->offBright);
+                } 
             }
-        }
-        else
-        {
-            analogWrite(pin,(isOn ? 255 : 0));     //  I've done it especially for correct work Fader functions
-            state = isOn;
+            else if(modePtr != nullptr)
+            {
+                if(!firstFaderBrightSet)
+                {
+                    firstFaderBrightSet = true;
+                    faderBright = (state ? modePtr->onBright : modePtr->offBright);
+                }
+            }
+            else
+            {
+                AnalogWrite(isOn ? 255 : 0);     //  I've done it especially for correct work Fader functions
+                state = isOn;
+            }
         }
     }
 }
@@ -97,19 +100,19 @@ uint8_t MyPin::AntiRattleButton(bool signal, uint32_t shortTime, uint32_t longTi
         if(ready)
             return 0;
 
-        uint32_t mls = millis();
+        uint32_t ms = millis();
         if(!btnPreviousReader)
-            btnStartMs = mls;
+            btnStartMs = ms;
         
-        if(mls - btnStartMs > shortTime)
+        if(ms - btnStartMs > shortTime)
         {
-            buttonState = 1;
+            btnState = 1;
 
             if(longTime > shortTime)
             {
-                if(mls - btnStartMs > longTime)
+                if(ms - btnStartMs > longTime)
                 {
-                    buttonState = 2;
+                    btnState = 2;
                     ready = true;
                 }
             }
@@ -122,10 +125,57 @@ uint8_t MyPin::AntiRattleButton(bool signal, uint32_t shortTime, uint32_t longTi
 
     btnPreviousReader = reader;
 
-    if(ready || (!reader && buttonState))
+    if(ready || (!reader && btnState))
     {
-        uint8_t bS = buttonState;
-        buttonState = 0;
+        uint8_t bS = btnState;
+        btnState = 0;
+        return bS;
+    }
+
+    return 0;
+}
+
+uint8_t MyPin::AnalogAntiRattleButton(uint16_t minLvl, uint16_t maxLvl, uint32_t shortTime, uint32_t longTime)
+{
+    bool goodLvl = false;
+    uint16_t lvl = analogRead(pin);
+    if((lvl > minLvl) && (lvl < maxLvl))
+        goodLvl = true;
+
+    if(goodLvl)
+    {
+        if(analogReady)
+            return 0;
+
+        uint32_t ms = millis();
+        if(!btnPreviousGoodLvl)
+            btnAnalogStartMs = ms;
+        
+        if(ms - btnAnalogStartMs > shortTime)
+        {
+            btnAnalogState = 1;
+
+            if(longTime > shortTime)
+            {
+                if(ms - btnAnalogStartMs > longTime)
+                {
+                    btnAnalogState = 2;
+                    analogReady = true;
+                }
+            }
+            else
+                analogReady = true;
+        }
+    }
+    else
+        analogReady = false;
+
+    btnPreviousGoodLvl = goodLvl;
+
+    if(analogReady || (!goodLvl && btnAnalogState))
+    {
+        uint8_t bS = btnAnalogState;
+        btnAnalogState = 0;
         return bS;
     }
 
@@ -141,13 +191,33 @@ uint32_t MyPin::AntiRattleSensor(bool signal)
     uint32_t result = 0;
     if(reader)
     {
-        uint32_t mls = millis();
+        uint32_t ms = millis();
         if(!snsPreviousReader)
-            snsStartMs = mls;
+            snsStartMs = ms;
 
-        result = mls - snsStartMs;
+        result = ms - snsStartMs;
     }
     snsPreviousReader = reader;
+    return result;
+}
+
+uint32_t MyPin::AnalogAntiRattleSensor(uint16_t minLvl, uint16_t maxLvl)
+{
+    bool goodLvl = false;
+    uint16_t lvl = analogRead(pin);
+    if((lvl > minLvl) && (lvl < maxLvl))
+        goodLvl = true;
+
+    uint32_t result = 0;
+    if(goodLvl)
+    {
+        uint32_t ms = millis();
+        if(!snsPreviousGoodLvl)
+            snsAnalogStartMs = ms;
+
+        result = ms - snsStartMs;
+    }
+    snsPreviousGoodLvl = goodLvl;
     return result;
 }
 

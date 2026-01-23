@@ -2,8 +2,6 @@
 
 MyPin* MyPin::blinkCurrentPtr = nullptr;
 
-bool MyPin::blinkEnableAll = false;
-
 void MyPin::StartBlink(uint32_t changeTime_ms)
 {
     if(!blinkFlag)
@@ -31,33 +29,27 @@ void MyPin::EnableBlink()
 
 void MyPin::EnableBlinkAll()
 {
-    blinkEnableAll = true;
+    MyPin* ptr = currentPtr;
+
+    while(ptr != nullptr)
+    {
+        ptr->EnableBlink();
+        ptr = ptr->ptrOnOther;
+    }
 }
 
 void MyPin::BlinkHandler()
 {
     uint32_t ms = millis();
 
-    if(blinkEnableAll)
+    MyPin* ptr = blinkCurrentPtr;
+
+    while(ptr != nullptr)
     {
-        MyPin* ptr = currentPtr;
-    
-        while(ptr != nullptr)
-        {
+        if(ptr->mode == OUT)
             ptr->InternalBlinkHandler(ms);
-            ptr = ptr->ptrOnOther;
-        }
-    }
-    else
-    {
-        MyPin* ptr = blinkCurrentPtr;
-    
-        while(ptr != nullptr)
-        {
-            ptr->InternalBlinkHandler(ms);
-            ptr = ptr->blinkPtrOnOther;
-        }
-    }
+        ptr = ptr->blinkPtrOnOther;
+    }   
 }
 
 void MyPin::InternalBlinkHandler(uint32_t currentMs)

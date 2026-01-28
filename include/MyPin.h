@@ -105,9 +105,9 @@ class MyPin
         uint32_t faderPreviousMs;   //  Fader
         uint8_t faderBright;
         bool firstFaderBrightSet = false;
-        bool changeModePtr = false;
         fader_t* modePtr = nullptr;
         fader_t* singlePtr = nullptr;
+        fader_t* prevPtr = nullptr;
 
         MyPin* faderPtrOnOther = nullptr;
         static MyPin* faderCurrentPtr;

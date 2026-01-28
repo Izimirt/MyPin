@@ -4,13 +4,13 @@ MyPin* MyPin::faderCurrentPtr = nullptr;
 
 void MyPin::SetFader(fader_t** ptrSet, uint16_t fadeTime_ms, uint8_t onBright, uint8_t offBright)
 {
-    if(*ptrSet == nullptr)
+    if (*ptrSet == nullptr)
         *ptrSet = new fader_t {};
 
     (*ptrSet)->onBright = onBright;
     (*ptrSet)->offBright = offBright;
     (*ptrSet)->fadeTime_ms = fadeTime_ms;
-    if(onBright == offBright)
+    if (onBright == offBright)
         (*ptrSet)->period_ms = 0;
     else
         (*ptrSet)->period_ms = fadeTime_ms / abs(onBright - offBright);
@@ -18,11 +18,8 @@ void MyPin::SetFader(fader_t** ptrSet, uint16_t fadeTime_ms, uint8_t onBright, u
 
 void MyPin::StartFader(fader_t* set)
 {
-    if((set != nullptr) && (set != modePtr))
-    {
+    if (set != nullptr)
         modePtr = set;
-        changeModePtr = true;
-    }
 }
 
 void MyPin::StartFaderAll(fader_t* set)
@@ -66,7 +63,7 @@ void MyPin::FaderHandler()
 
     while(ptr != nullptr)
     {
-        if(ptr->mode == OUT)
+        if (ptr->mode == OUT)
             ptr->InternalFaderHandler(ms);
         ptr = ptr->faderPtrOnOther;
     }
@@ -76,27 +73,27 @@ void MyPin::InternalFaderHandler(uint32_t currentMs)
 {
     fader_t* ptr = nullptr;
 
-    if(singlePtr)
+    if (singlePtr)
         ptr = singlePtr;
-    else if(modePtr)
+    else if (modePtr)
         ptr = modePtr;
     else 
         return;
 
-    if(changeModePtr)
+    if (ptr != prevPtr)
     {
-        changeModePtr = false;
-        faderBright = (state ? modePtr->onBright : modePtr->offBright);
+        faderBright = (state ? ptr->onBright : ptr->offBright);
         AnalogWrite(faderBright);
     }
+    prevPtr = ptr;
     
-    if(faderBright != (needState ? ptr->onBright : ptr->offBright))
+    if (faderBright != (needState ? ptr->onBright : ptr->offBright))
     {
-        if(currentMs < faderPreviousMs)
+        if (currentMs < faderPreviousMs)
             faderPreviousMs = currentMs;
-        if(currentMs - faderPreviousMs >= ptr->period_ms)
+        if (currentMs - faderPreviousMs >= ptr->period_ms)
         {
-            if(ptr->period_ms == 0)
+            if (ptr->period_ms == 0)
                 faderBright = (needState ? ptr->onBright : ptr->offBright);
             else
                 needState ? faderBright++ : faderBright--;

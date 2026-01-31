@@ -139,7 +139,7 @@ uint8_t MyPin::AnalogAntiRattleButton(uint16_t minLvl, uint16_t maxLvl, uint32_t
 {
     bool goodLvl = false;
     uint16_t lvl = analogRead(pin);
-    if ((lvl > minLvl) && (lvl < maxLvl))
+    if ((lvl >= minLvl) && (lvl <= maxLvl))
         goodLvl = true;
 
     if (goodLvl)
@@ -205,7 +205,7 @@ uint32_t MyPin::AnalogAntiRattleSensor(uint16_t minLvl, uint16_t maxLvl)
 {
     bool goodLvl = false;
     uint16_t lvl = analogRead(pin);
-    if ((lvl > minLvl) && (lvl < maxLvl))
+    if ((lvl >= minLvl) && (lvl <= maxLvl))
         goodLvl = true;
 
     uint32_t result = 0;

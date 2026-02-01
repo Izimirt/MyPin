@@ -14,7 +14,7 @@ class MyPin
 
         void SetPin(uint16_t pin, pin_mode_t mode);
 
-        void Change(fader_t* set = nullptr);
+        void Change();
 
         void Change(bool isOn, fader_t* set = nullptr);
 

@@ -34,9 +34,9 @@ void MyPin::SetPin(uint16_t pin, pin_mode_t mode)
     #endif
 }
 
-void MyPin::Change(fader_t* set)
+void MyPin::Change()
 {
-    Change(!needState,set);
+    Change(!needState,nullptr);
 }
 
 void MyPin::Change(bool isOn, fader_t* set)
@@ -104,13 +104,13 @@ uint8_t MyPin::AntiRattleButton(bool signal, uint32_t shortTime, uint32_t longTi
         if (!btnPreviousReader)
             btnStartMs = ms;
         
-        if (ms - btnStartMs > shortTime)
+        if (ms - btnStartMs >= shortTime)
         {
             btnState = 1;
 
             if (longTime > shortTime)
             {
-                if (ms - btnStartMs > longTime)
+                if (ms - btnStartMs >= longTime)
                 {
                     btnState = 2;
                     ready = true;
@@ -151,13 +151,13 @@ uint8_t MyPin::AnalogAntiRattleButton(uint16_t minLvl, uint16_t maxLvl, uint32_t
         if (!btnPreviousGoodLvl)
             btnAnalogStartMs = ms;
         
-        if (ms - btnAnalogStartMs > shortTime)
+        if (ms - btnAnalogStartMs >= shortTime)
         {
             btnAnalogState = 1;
 
             if (longTime > shortTime)
             {
-                if (ms - btnAnalogStartMs > longTime)
+                if (ms - btnAnalogStartMs >= longTime)
                 {
                     btnAnalogState = 2;
                     analogReady = true;
